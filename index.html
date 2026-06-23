@@ -742,8 +742,7 @@
             Your browser does not support HTML5 video.
           </video>
           <div id="video-label">Introductory Narrative — London, 1870</div>
-          
-          
+          <button id="skip-btn">Skip Intro ›</button>
         </div>
       </div>
 
@@ -752,7 +751,7 @@
 
         <!-- Stage badge -->
         <div id="stage-badge" class="fade-in" style="width:100%">
-          <div class="checkpoint-label">Checkpoint <span id="stage-num"></span> of 19</div>
+          <div class="checkpoint-label">Checkpoint <span id="stage-num"></span> of 16</div>
           <div class="location-name" id="stage-location"></div>
           <div class="location-subtitle" id="stage-country"></div>
         </div>
@@ -1176,6 +1175,7 @@
     completeScreen:   document.getElementById('complete-screen'),
 
     // Intro
+    skipBtn:          document.getElementById('skip-btn'),
     introVideo:       document.getElementById('video-player'),
 
     // Stage badge
