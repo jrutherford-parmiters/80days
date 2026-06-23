@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Around the World in 80 Days — Escape Room</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Playfair Display (serif headers) + DM Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=Cinzel:wght@400;700&display=swap" rel="stylesheet" />
+
+  <script>
+    // Tailwind config – extend with our bespoke steampunk palette
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brass:    { DEFAULT: '#B8860B', light: '#D4A017', dark: '#8B6508', shine: '#F0C040' },
+            parchment:{ DEFAULT: '#F5EDD6', dark: '#E8D9B5', deep: '#D4C090' },
+            leather:  { DEFAULT: '#6B3A2A', light: '#8B4E38', dark: '#4A2218' },
+            slate:    { DEFAULT: '#1C1F26', light: '#2E3340', mid: '#4A5060' },
+            copper:   { DEFAULT: '#B87333', light: '#CD8B4A' },
+          },
+          fontFamily: {
+            display: ['"Cinzel"', 'serif'],
+            serif:   ['"Playfair Display"', 'serif'],
+            body:    ['"DM Sans"', 'sans-serif'],
+          },
+          boxShadow: {
+            brass:  '0 0 0 2px #B8860B, 0 4px 24px rgba(184,134,11,0.25)',
+            trunk:  'inset 0 2px 6px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.5)',
+            glow:   '0 0 20px rgba(212,160,23,0.5)',
+          },
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* ─── Base Reset & Variables ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brass:       #B8860B;
+      --brass-light: #D4A017;
+      --brass-shine: #F0C040;
+      --parchment:   #F5EDD6;
+      --parch-dark:  #E8D9B5;
+      --parch-deep:  #D4C090;
+      --leather:     #6B3A2A;
+      --leather-dk:  #4A2218;
+      --slate:       #1C1F26;
+      --slate-lt:    #2E3340;
+      --copper:      #B87333;
+      --error:       #C0392B;
+      --success:     #27674A;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--slate);
+      color: var(--parchment);
+      overflow-x: hidden;
+    }
+
+    /* ─── Scrollbar ──────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--slate); }
+    ::-webkit-scrollbar-thumb { background: var(--brass); border-radius: 3px; }
+
+    /* ─── Noise Texture Overlay ──────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    /* ─── Page Wrapper ───────────────────────────────────────────────── */
+    #app {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ─── Decorative border lines ────────────────────────────────────── */
+    .brass-border {
+      border: 2px solid var(--brass);
+      box-shadow: 0 0 0 1px rgba(184,134,11,0.2), inset 0 0 0 1px rgba(184,134,11,0.1);
+    }
+
+    .brass-border-top {
+      border-top: 2px solid var(--brass);
+    }
+
+    /* ─── Corner ornament pseudo-elements ───────────────────────────── */
+    .ornament-box {
+      position: relative;
+    }
+    .ornament-box::before,
+    .ornament-box::after {
+      content: '✦';
+      position: absolute;
+      color: var(--brass);
+      font-size: 0.75rem;
+      opacity: 0.7;
+    }
+    .ornament-box::before { top: 6px; left: 8px; }
+    .ornament-box::after  { top: 6px; right: 8px; }
+
+    /* ─── Header Bar ─────────────────────────────────────────────────── */
+    #header {
+      width: 100%;
+      background: linear-gradient(180deg, #0D0F13 0%, var(--slate-lt) 100%);
+      border-bottom: 1px solid var(--brass);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-shrink: 0;
+    }
+
+    #header h1 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+      color: var(--brass-shine);
+      letter-spacing: 0.12em;
+      text-shadow: 0 0 12px rgba(240,192,64,0.4);
+      line-height: 1.2;
+    }
+
+    #header .subtitle {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(0.6rem, 1.5vw, 0.75rem);
+      color: var(--parch-dark);
+      opacity: 0.7;
+      letter-spacing: 0.06em;
+      font-style: italic;
+    }
+
+    /* ─── Progress Track ─────────────────────────────────────────────── */
+    #progress-track {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+
+    .progress-pip {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--slate-lt);
+      border: 1px solid rgba(184,134,11,0.3);
+      transition: all 0.4s ease;
+      flex-shrink: 0;
+    }
+    .progress-pip.done    { background: var(--brass); border-color: var(--brass-shine); box-shadow: 0 0 6px rgba(212,160,23,0.6); }
+    .progress-pip.current { background: var(--brass-light); border-color: var(--brass-shine); box-shadow: 0 0 10px rgba(240,192,64,0.8); animation: pulse-pip 1.5s infinite; }
+
+    @keyframes pulse-pip {
+      0%, 100% { box-shadow: 0 0 6px rgba(240,192,64,0.8); }
+      50%       { box-shadow: 0 0 14px rgba(240,192,64,1); }
+    }
+
+    /* ─── Main Content Area ──────────────────────────────────────────── */
+    #main {
+      flex: 1;
+      width: 100%;
+      max-width: 860px;
+      padding: 1.5rem 1rem 3rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    /* ─── Stage Badge ────────────────────────────────────────────────── */
+    #stage-badge {
+      text-align: center;
+    }
+
+    #stage-badge .checkpoint-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--brass);
+      opacity: 0.8;
+    }
+
+    #stage-badge .location-name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.5rem, 5vw, 2.4rem);
+      font-weight: 700;
+      color: var(--brass-shine);
+      text-shadow: 0 2px 16px rgba(184,134,11,0.3);
+      line-height: 1.2;
+      margin-top: 0.15rem;
+    }
+
+    #stage-badge .location-subtitle {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 0.85rem;
+      color: var(--parch-dark);
+      opacity: 0.65;
+      margin-top: 0.2rem;
+    }
+
+    /* ─── Video Container ────────────────────────────────────────────── */
+    #video-container {
+      width: 100%;
+      background: #000;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+      border: 2px solid var(--brass);
+      box-shadow: 0 0 0 4px rgba(184,134,11,0.15), 0 8px 40px rgba(0,0,0,0.7);
+    }
+
+    #video-container::before {
+      /* Decorative film-reel corner marks */
+      content: '';
+      position: absolute; inset: 6px;
+      border: 1px solid rgba(184,134,11,0.2);
+      pointer-events: none;
+      z-index: 10;
+      border-radius: 2px;
+    }
+
+    #video-player {
+      width: 100%;
+      aspect-ratio: 16/9;
+      display: block;
+      background: #000;
+    }
+
+    #video-label {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 0.5rem 1rem;
+      background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, transparent 100%);
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 0.8rem;
+      color: var(--parch-dark);
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    #skip-btn {
+      position: absolute;
+      top: 12px; right: 12px;
+      z-index: 20;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid var(--brass);
+      color: var(--parch-dark);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      padding: 0.35rem 0.8rem;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s ease;
+    }
+    #skip-btn:hover { background: var(--brass); color: var(--slate); }
+
+    /* ─── Task Panel (the "trunk") ───────────────────────────────────── */
+    #task-panel {
+      width: 100%;
+      background: linear-gradient(160deg, #22180E 0%, #1A1208 100%);
+      border: 2px solid var(--brass);
+      border-radius: 6px;
+      padding: 1.5rem;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 8px 40px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      position: relative;
+    }
+
+    /* Trunk rivet accents */
+    #task-panel::before,
+    #task-panel::after {
+      content: '';
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, var(--brass-shine), var(--brass-dark, #8B6508));
+      border: 1px solid rgba(0,0,0,0.4);
+      top: 10px;
+    }
+    #task-panel::before { left: 10px; }
+    #task-panel::after  { right: 10px; }
+
+    /* ─── Action Row (Replay + Street View) ──────────────────────────── */
+    #action-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 3px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn-replay {
+      background: rgba(184,134,11,0.12);
+      border: 1px solid var(--brass);
+      color: var(--brass-light);
+    }
+    .btn-replay:hover { background: rgba(184,134,11,0.25); box-shadow: 0 0 12px rgba(184,134,11,0.3); }
+
+    .btn-streetview {
+      background: linear-gradient(135deg, var(--brass-light), var(--brass));
+      color: var(--slate);
+      font-weight: 700;
+      box-shadow: 0 2px 12px rgba(184,134,11,0.4);
+      flex: 1;
+      justify-content: center;
+      min-width: 200px;
+    }
+    .btn-streetview:hover { background: linear-gradient(135deg, var(--brass-shine), var(--brass-light)); box-shadow: 0 4px 20px rgba(240,192,64,0.5); transform: translateY(-1px); }
+
+    /* ─── Divider ────────────────────────────────────────────────────── */
+    .brass-divider {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      opacity: 0.5;
+    }
+    .brass-divider span { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--brass), transparent); }
+    .brass-divider i { color: var(--brass); font-size: 0.65rem; }
+
+    /* ─── Questions Block ────────────────────────────────────────────── */
+    #questions-block {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .question-item label {
+      display: block;
+      font-family: 'Playfair Display', serif;
+      font-size: 0.9rem;
+      color: var(--parch-dark);
+      margin-bottom: 0.4rem;
+      opacity: 0.9;
+    }
+
+    .question-item label .q-num {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      color: var(--brass);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 0.15rem;
+    }
+
+    .answer-input {
+      width: 100%;
+      background: rgba(245,237,214,0.06);
+      border: 1px solid rgba(184,134,11,0.35);
+      border-radius: 3px;
+      padding: 0.65rem 0.85rem;
+      color: var(--parchment);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: all 0.25s ease;
+    }
+    .answer-input::placeholder { color: rgba(245,237,214,0.25); }
+    .answer-input:focus { border-color: var(--brass-light); background: rgba(245,237,214,0.09); box-shadow: 0 0 0 3px rgba(184,134,11,0.15); }
+    .answer-input.correct { border-color: #27674A; background: rgba(39,103,74,0.1); box-shadow: 0 0 0 3px rgba(39,103,74,0.15); padding-right: 2.4rem; }
+    .answer-input.incorrect { border-color: var(--error); background: rgba(192,57,43,0.08); box-shadow: 0 0 0 3px rgba(192,57,43,0.12); }
+
+    /* Correct-answer tick icon */
+    .input-wrapper {
+      position: relative;
+    }
+    .correct-icon {
+      display: none;
+      position: absolute;
+      right: 0.7rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #3aab72;
+      pointer-events: none;
+      animation: tickPop 0.25s cubic-bezier(0.175,0.885,0.32,1.275) both;
+    }
+    .answer-input.correct ~ .correct-icon { display: flex; }
+
+    @keyframes tickPop {
+      from { opacity: 0; transform: translateY(-50%) scale(0.5); }
+      to   { opacity: 1; transform: translateY(-50%) scale(1); }
+    }
+
+    /* ─── Bottom Row (Tip + Submit) ──────────────────────────────────── */
+    #bottom-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    /* Tip button */
+    #tip-btn {
+      flex: 1;
+      min-width: 160px;
+      padding: 0.65rem 1rem;
+      border-radius: 3px;
+      background: rgba(184,134,11,0.06);
+      border: 1px solid rgba(184,134,11,0.25);
+      color: var(--parch-dark);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      cursor: not-allowed;
+      transition: all 0.25s ease;
+      opacity: 0.6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    #tip-btn.unlocked {
+      cursor: pointer;
+      opacity: 1;
+      border-color: var(--copper);
+      color: var(--copper);
+    }
+    #tip-btn.unlocked:hover { background: rgba(184,115,51,0.15); box-shadow: 0 0 12px rgba(184,115,51,0.2); }
+
+    #tip-countdown {
+      font-variant-numeric: tabular-nums;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--brass);
+      white-space: nowrap;
+    }
+
+    /* Submit button */
+    #submit-btn {
+      flex: 2;
+      min-width: 200px;
+      padding: 0.75rem 1.5rem;
+      border-radius: 3px;
+      background: linear-gradient(135deg, var(--leather), var(--leather-dk));
+      border: 1px solid var(--brass);
+      color: var(--brass-shine);
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    }
+    #submit-btn:hover { background: linear-gradient(135deg, #8B4E38, #6B3A2A); box-shadow: 0 0 20px rgba(184,134,11,0.35); transform: translateY(-1px); }
+    #submit-btn:active { transform: translateY(0); }
+
+    /* ─── Tip Box ────────────────────────────────────────────────────── */
+    #tip-box {
+      background: rgba(184,115,51,0.08);
+      border: 1px solid rgba(184,115,51,0.4);
+      border-radius: 3px;
+      padding: 0.85rem 1rem;
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 0.88rem;
+      color: var(--parch-dark);
+      opacity: 0.9;
+      line-height: 1.55;
+      display: none;
+    }
+    #tip-box.visible { display: block; }
+    #tip-box::before { content: '🧭  '; }
+
+    /* ─── Feedback Toast ─────────────────────────────────────────────── */
+    #feedback-toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--slate-lt);
+      border: 1px solid var(--brass);
+      border-radius: 4px;
+      padding: 0.75rem 1.5rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--parchment);
+      z-index: 1000;
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+      white-space: nowrap;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+    }
+    #feedback-toast.show { transform: translateX(-50%) translateY(0); }
+    #feedback-toast.error { border-color: var(--error); color: #E8756A; }
+    #feedback-toast.success { border-color: #27674A; color: #52C48A; }
+
+    /* ─── Success Overlay ────────────────────────────────────────────── */
+    #success-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at center, rgba(184,134,11,0.15) 0%, rgba(28,31,38,0.97) 70%);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    #success-overlay.show { display: flex; }
+
+    #success-overlay .success-card {
+      text-align: center;
+      max-width: 420px;
+      padding: 2.5rem 2rem;
+      background: linear-gradient(160deg, #22180E, #1A1208);
+      border: 2px solid var(--brass);
+      border-radius: 8px;
+      box-shadow: 0 0 60px rgba(184,134,11,0.3);
+      animation: pop-in 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+
+    @keyframes pop-in {
+      from { opacity: 0; transform: scale(0.85); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    #success-overlay .success-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.5rem;
+      color: var(--brass-shine);
+      text-shadow: 0 0 20px rgba(240,192,64,0.5);
+      letter-spacing: 0.1em;
+    }
+
+    #success-overlay .success-subtitle {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1rem;
+      color: var(--parch-dark);
+      opacity: 0.75;
+      margin-top: 0.5rem;
+    }
+
+    #success-overlay .success-next-btn {
+      margin-top: 1.5rem;
+      padding: 0.75rem 2.5rem;
+      background: linear-gradient(135deg, var(--brass-light), var(--brass));
+      color: var(--slate);
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(184,134,11,0.4);
+      transition: all 0.2s ease;
+    }
+    #success-overlay .success-next-btn:hover { background: linear-gradient(135deg, var(--brass-shine), var(--brass-light)); }
+
+    /* Confetti particles */
+    .confetti-piece {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 1px;
+      animation: confetti-fall 2.5s ease-in forwards;
+      z-index: 490;
+      pointer-events: none;
+    }
+    @keyframes confetti-fall {
+      0%   { opacity: 1; transform: translateY(-20px) rotate(0deg); }
+      100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
+    }
+
+    /* ─── Game Complete Screen ───────────────────────────────────────── */
+    #complete-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 1.5rem;
+      padding: 3rem 1rem;
+      min-height: 60vh;
+    }
+    #complete-screen.show { display: flex; }
+
+    #complete-screen .complete-icon {
+      font-size: 4rem;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-12px); }
+    }
+
+    #complete-screen h2 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.8rem, 6vw, 3rem);
+      color: var(--brass-shine);
+      text-shadow: 0 0 30px rgba(240,192,64,0.4);
+      letter-spacing: 0.1em;
+    }
+
+    #complete-screen p {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1.1rem;
+      color: var(--parch-dark);
+      opacity: 0.75;
+      max-width: 480px;
+      line-height: 1.6;
+    }
+
+    /* ─── Intro Screen ───────────────────────────────────────────────── */
+    #intro-screen {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    #intro-title {
+      text-align: center;
+    }
+
+    #intro-title .eyebrow {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--brass);
+      opacity: 0.7;
+    }
+
+    #intro-title h2 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.4rem, 5vw, 2.5rem);
+      color: var(--brass-shine);
+      text-shadow: 0 2px 20px rgba(240,192,64,0.35);
+      letter-spacing: 0.08em;
+      line-height: 1.2;
+      margin-top: 0.3rem;
+    }
+
+    #intro-title p {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 0.95rem;
+      color: var(--parch-dark);
+      opacity: 0.65;
+      margin-top: 0.35rem;
+    }
+
+    /* ─── Responsive tweaks ──────────────────────────────────────────── */
+    @media (max-width: 540px) {
+      #action-row { flex-direction: column; }
+      .btn-streetview { min-width: unset; }
+      #bottom-row { flex-direction: column; }
+      #tip-btn, #submit-btn { min-width: unset; }
+      #task-panel { padding: 1rem; }
+      .progress-pip { width: 7px; height: 7px; }
+    }
+
+    /* ─── Transition helpers ─────────────────────────────────────────── */
+    .fade-in  { animation: fadeIn  0.4s ease forwards; }
+    .fade-out { animation: fadeOut 0.3s ease forwards; }
+
+    @keyframes fadeIn  { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+    .hidden { display: none !important; }
+
+    /* Brass decorative HR */
+    .brass-hr {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--brass) 30%, var(--brass-shine) 50%, var(--brass) 70%, transparent 100%);
+      opacity: 0.4;
+      border: none;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ════════════════════════════════════════════════════════════════
+       APP ROOT
+  ════════════════════════════════════════════════════════════════ -->
+  <div id="app">
+
+    <!-- HEADER -->
+    <header id="header">
+      <div>
+        <div class="subtitle">Jules Verne's</div>
+        <h1>Around the World in 80 Days</h1>
+      </div>
+      <!-- 16 progress pips -->
+      <div id="progress-track" aria-label="Progress"></div>
+    </header>
+
+    <!-- MAIN -->
+    <main id="main">
+
+      <!-- ── INTRO SCREEN (shown for Location 1 video only) ─────── -->
+      <div id="intro-screen" class="hidden">
+        <div id="intro-title">
+          <div class="eyebrow">Educational Escape Room</div>
+          <h2>Around the World<br/>in 80 Days</h2>
+          <p>"The world is a book, and those who do not travel read only one page."</p>
+        </div>
+
+        <!-- Video (intro) -->
+        <div id="video-container" style="width:100%">
+          <video id="video-player" controls playsinline>
+            Your browser does not support HTML5 video.
+          </video>
+          <div id="video-label">Introductory Narrative — London, 1870</div>
+          <button id="skip-btn">Skip Intro ›</button>
+        </div>
+      </div>
+
+      <!-- ── GAME SCREEN (locations 1–16 tasks) ────────────────── -->
+      <div id="game-screen" class="hidden" style="width:100%;display:flex;flex-direction:column;gap:1.25rem;align-items:center;">
+
+        <!-- Stage badge -->
+        <div id="stage-badge" class="fade-in" style="width:100%">
+          <div class="checkpoint-label">Checkpoint <span id="stage-num"></span> of 16</div>
+          <div class="location-name" id="stage-location"></div>
+          <div class="location-subtitle" id="stage-country"></div>
+        </div>
+
+        <hr class="brass-hr" />
+
+        <!-- Location video (shown when replaying or first playing) -->
+        <div id="location-video-wrap" style="width:100%">
+          <div id="video-container-loc" style="position:relative;border:2px solid var(--brass);border-radius:4px;overflow:hidden;box-shadow:0 0 0 4px rgba(184,134,11,0.12),0 8px 40px rgba(0,0,0,0.6);">
+            <video id="location-video" controls playsinline style="width:100%;aspect-ratio:16/9;display:block;background:#000;">
+              Your browser does not support HTML5 video.
+            </video>
+            <div id="loc-video-label" style="position:absolute;bottom:0;left:0;right:0;padding:0.5rem 1rem;background:linear-gradient(0deg,rgba(0,0,0,0.85),transparent);font-family:'Playfair Display',serif;font-style:italic;font-size:0.8rem;color:var(--parch-dark);opacity:0.8;pointer-events:none;"></div>
+          </div>
+        </div>
+
+        <!-- Task Panel -->
+        <div id="task-panel" class="hidden" style="width:100%">
+
+          <!-- Action Row -->
+          <div id="action-row">
+            <button class="action-btn btn-replay" id="replay-btn" title="Replay location video">
+              <!-- film strip icon -->
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Replay Video
+            </button>
+            <a class="action-btn btn-streetview" id="streetview-link" href="#" target="_blank" rel="noopener noreferrer">
+              <!-- compass icon -->
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+              <span id="streetview-link-label">Open Navigation Map</span>
+            </a>
+          </div>
+
+          <div class="brass-divider"><span></span><i>✦</i><span></span></div>
+
+          <!-- Questions -->
+          <div id="questions-block">
+            <!-- Dynamically populated -->
+          </div>
+
+          <!-- Tip + Submit -->
+          <div id="bottom-row">
+            <button id="tip-btn" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span id="tip-label">Get a Tip</span>
+              <span id="tip-countdown"></span>
+            </button>
+            <button id="submit-btn">
+              Submit Answers ›
+            </button>
+          </div>
+
+          <!-- Tip reveal box -->
+          <div id="tip-box"></div>
+
+        </div><!-- /task-panel -->
+
+      </div><!-- /game-screen -->
+
+      <!-- ── COMPLETE SCREEN ────────────────────────────────────── -->
+      <div id="complete-screen">
+        <div class="complete-icon">🌍</div>
+        <h2>Journey Complete!</h2>
+        <p>Phileas Fogg has circumnavigated the globe in record time — and so have you. You've cracked every cipher, decoded every clue, and conquered all 16 checkpoints. Extraordinary!</p>
+        <button onclick="location.reload()" style="padding:0.75rem 2.5rem;background:linear-gradient(135deg,var(--brass-light),var(--brass));color:var(--slate);font-family:'Cinzel',serif;font-size:0.9rem;letter-spacing:0.12em;border:none;border-radius:3px;cursor:pointer;box-shadow:0 4px 20px rgba(184,134,11,0.4);">
+          Play Again
+        </button>
+      </div>
+
+    </main><!-- /main -->
+  </div><!-- /app -->
+
+  <!-- ── SUCCESS OVERLAY ──────────────────────────────────────────── -->
+  <div id="success-overlay" role="dialog" aria-modal="true" aria-label="Location complete">
+    <div class="success-card">
+      <div style="font-size:2.5rem;margin-bottom:0.5rem;">⚙️</div>
+      <div class="success-title">Checkpoint Cleared!</div>
+      <div class="success-subtitle" id="success-subtitle">Excellent work, young traveller.</div>
+      <button class="success-next-btn" id="success-next-btn">
+        Continue Journey ›
+      </button>
+    </div>
+  </div>
+
+  <!-- ── FEEDBACK TOAST ────────────────────────────────────────────── -->
+  <div id="feedback-toast" role="status" aria-live="polite"></div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       JAVASCRIPT — GAME ENGINE
+  ════════════════════════════════════════════════════════════════ -->
+  <script>
+  /**
+   * ══════════════════════════════════════════════════════════════════
+   *  LOCATIONS DATA
+   *  ──────────────────────────────────────────────────────────────
+   *  Each object contains:
+   *    id          {number}  1-based location index
+   *    name        {string}  Display name shown on stage badge
+   *    country     {string}  Subtitle / country or region line
+   *    video       {string}  Path or filename of the location video
+   *    streetView  {string}  Full URL opened in new tab
+   *    linkLabel   {string}  Label shown on the gold link button, e.g.
+   *                          "Open Navigation Map", "Explore Street View",
+   *                          "Open Satellite View", "Open Google Earth" etc.
+   *                          Defaults to "Open Navigation Map" if omitted.
+   *    questions   {Array}   Exactly 3 objects: { text, answer }
+   *    tip         {string}  Revealed after 3-minute countdown
+   *
+   *  ANSWER MATCHING: Case-insensitive substring check.
+   *  e.g. answer "Richmond" matches "The Hotel Richmond", "richmond hotel", etc.
+   *  ──────────────────────────────────────────────────────────────
+   *  TO ADD/EDIT DATA: Simply update the objects below.
+   *  Video files should be in the same folder as index.html.
+   * ══════════════════════════════════════════════════════════════════
+   */
+  /* ── INTRO VIDEO (plays once before Location 1) ─────────────
+   * Update this URL to point to your separate introductory video.
+   * The location videos are defined per-entry below.
+   * ──────────────────────────────────────────────────────────── */
+  const INTRO_VIDEO = "https://www.what2learn.com/wp-content/uploads/2026/05/Final-Intro-Video-Compressed.mp4";
+
+  const LOCATIONS = [
+
+    /* ── LOCATION 1 ─────────────────────────────────────────── */
+    {
+      id: 1,
+      name: "Pall Mall, London",
+      country: "England, United Kingdom",
+      video: "https://www.what2learn.com/wp-content/uploads/2026/06/Location1.mp4",
+      linkLabel: "Open Navigation Map",   // ← change button text here
+      streetView: "https://www.google.com/maps/place/The+Reform+Club/@51.5067774,-0.1335452,3a,75y,332.36h,82.1t/data=!3m7!1e1!3m5!1sfvtjf5IInkkrjOz-6RDf_A!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D7.896789813272804%26panoid%3Dfvtjf5IInkkrjOz-6RDf_A%26yaw%3D332.3624626428857!7i16384!8i8192!4m6!3m5!1s0x487604d0e75e9c17:0x83f35adff3161f27!8m2!3d51.5066535!4d-0.1335754!16zL20vMDFjcTI1?entry=ttu&g_ep=EgoyMDI2MDUxMy4wIKXMDSoASAFQAw%3D%3D",
+      questions: [
+        {
+          text: "What is the name of the shop?",
+          answer: "Favourbrook"
+        },
+        {
+          text: "Who are the only people allowed to park outside the shop?",
+          answer: "Diplomat"
+        },
+        {
+          text: "What is the four-digit code to unlock the case?",
+          answer: "1617"
+        }
+      ],
+      tip: "Look directly across the street from the Reform Club at the black window awnings and look closely at the parking pole."
+    },
+
+    /* ── LOCATION 2 ─────────────────────────────────────────── */
+    {
+      id: 2,
+      name: "Dover Waterfront",
+      country: "England, United Kingdom",
+      video: "https://www.what2learn.com/wp-content/uploads/2026/06/Location2_Dover.mp4",
+      linkLabel: "Open Navigation Map",   // ← change button text here
+      streetView: "https://www.google.com/maps/place/Dover/@51.1229083,1.3157997,3a,75y,256.87h,84.93t/data=!3m7!1e1!3m5!1slAJW9sitFbxcnYsF0q_rdQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D5.0724904739172985%26panoid%3DlAJW9sitFbxcnYsF0q_rdQ%26yaw%3D256.8711415243174!7i16384!8i8192!4m6!3m5!1s0x47dea4d1553332ff:0x32785c875ad74851!8m2!3d51.1278758!4d1.3134027!16zL20vMGIyOGc?entry=ttu&g_ep=EgoyMDI2MDUxMy4wIKXMDSoASAFQAw%3D%3D",
+      questions: [
+        {
+          text: "What is the name of the Yacht Club?",
+          answer: "Royal Cinque"
+        },
+        {
+          text: "What historic name is the 'Bar and Lounge' named after?",
+          answer: "Churchill"
+        }
+      ],
+      tip: "Both answers can be found by following the crescent road along the marine parade and looking at the buildings on the right. Look between two flags for one answer."
+    },
+
+    /* ── LOCATION 3 ─────────────────────────────────────────── */
+    {
+      id: 3,
+      name: "Gare du Nord",
+      country: "Paris, France",
+      video: "https://www.what2learn.com/wp-content/uploads/2026/06/Location3_Paris.mp4",
+      linkLabel: "Open Navigation Map",   // ← change button text here
+      streetView: "https://www.google.com/maps/@48.8797341,2.3560361,3a,75y,11.25h,80.19t/data=!3m7!1e1!3m5!1sggg1w45VlMf-AMHRasNUgw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D9.808312764913637%26panoid%3Dggg1w45VlMf-AMHRasNUgw%26yaw%3D11.253334794475172!7i16384!8i8192?entry=ttu&g_ep=EgoyMDI2MDUxMy4wIKXMDSoASAFQAw%3D%3D",
+      questions: [
+        {
+          text: "What number is on the Hotel Richmond?",
+          answer: "15"
+        },
+        {
+          text: "Which northern French port city name is written under one of the high statues?",
+          answer: "Dunkerque"
+        }      ],
+      tip: "Turn around to face away from the station to find the hotel first, then look high up at the architectural stone figures on the main station wall."
+    },
+
+    /* ── LOCATIONS 4–16: PLACEHOLDERS ───────────────────────
+     * Fill these in the same format as Locations 1–3 above.
+     * Replace all placeholder strings with real data.
+     * ──────────────────────────────────────────────────── */
+    {
+      id: 4,
+      name: "Port of Brindisi",
+      country: "Brindisi, Italy",
+      video: "https://www.what2learn.com/wp-content/uploads/2026/06/Location4_Brindisi.mp4",
+      linkLabel: "Open Navigation Map",   // ← change button text here
+      streetView: "https://www.google.com/maps/place//@40.6418718,17.9455242,3a,75y,305.18h,80.53t/data=!3m7!1e1!3m5!1sJFU-twSOxSdZgtZ3vlCmlg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D9.469428537555785%26panoid%3DJFU-twSOxSdZgtZ3vlCmlg%26yaw%3D305.18084951538367!7i13312!8i6656?entry=ttu&g_ep=EgoyMDI2MDUxMy4wIKXMDSoASAFQAw%3D%3D",
+      questions: [
+        { text: "Name the hotel named after an ancient god.", answer: "Poseid" },
+        { text: "Pizzeria house number (go past the big wheel)", answer: "15" },
+        { text: "Total of points on stars outside the naval base.", answer: "answer3" }
+      ],
+      tip: "The hotel is near your starting point - look for a grey building with black doors. Then, follow the road, keeping the sea to your right. Go past the big wheel and you will find a pizzeria. Follow that same road all the waty to the end and you'll find the green gates of a naval base - you'll need to count the points on the stars of the gate."
+    },
+    {
+      id: 5,
+      name: "Suez Canal",
+      country: "Egypt",
+      video: "https://www.what2learn.com/wp-content/uploads/2026/06/Location5_Suez.mp4",
+      linkLabel: "Sole the puzzle",   
+      streetView: "https://www.what2learn.com/wp-content/uploads/2026/06/suez.html",
+      questions: [
+        { text: "Suez Canal Master Key Code", answer: "8841" }
+      ],
+      tip: "You need to use the controls to slide the boats around to make room for the red boat to reach the exit on each level."
+    },
+    {
+      id: 6,
+      name: "Bombay",
+      country: "India",
+      video: "https://www.what2learn.com/wp-content/uploads/2026/06/Location6_Bombay.mp4",
+      linkLabel: "Open Navigation Map",   
+      streetView: "https://www.google.com/maps/@18.9507095,72.7928194,3a,75y,197.16h,73.48t/data=!3m7!1e1!3m5!1sYCmF36spJ5f_vL5FDO2XtQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D16.521263961427394%26panoid%3DYCmF36spJ5f_vL5FDO2XtQ%26yaw%3D197.15862793818357!7i13312!8i6656?entry=ttu&g_ep=EgoyMDI2MDUyNy4wIKXMDSoASAFQAw%3D%3D",
+      questions: [
+        { text: "What is the name of the fast food shop?", answer: "Krishna" },
+        { text: "What is the name of the 6-storey building?", answer: "Sea Crest" }
+      ],
+      tip: "From the starting place, the fast food is a few doors down on the right - look for a red awning over the door. For the six-storey building follow the road until it is about to bend left."
+    },
+    {
+      id: 7,
+      name: "Bombay Central Station",
+      country: "India",
+      video: "https://www.what2learn.com/wp-content/uploads/2026/06/Location7_BombayRailStation.mp4",
+      linkLabel: "Open Navigation Map",   
+      streetView: "https://www.google.com/maps/@18.9703745,72.8199872,3a,75y,264.46h,64.11t/data=!3m7!1e1!3m5!1sUpuOaJzT5FKqwQIJD2tijQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D25.8874476665749%26panoid%3DUpuOaJzT5FKqwQIJD2tijQ%26yaw%3D264.46307614869085!7i13312!8i6656?entry=ttu&g_ep=EgoyMDI2MDUyNy4wIKXMDSoASAFQAw%3D%3D",
+      questions: [
+        { text: "What number rule in the Railway Act prevents parking in front of the staton?", answer: "159" },
+        { text: "Windows + circles =", answer: "29" }
+      ],
+      tip: "You can find the chairman by looking at advertising boards near your starting point. For the 'windows plus circles' task, you'll need to go under the bridge and find the colourful station entrance."
+    },
+    {
+      id: 8,
+      name: "Kholby Outpost",
+      country: "India",
+      video: "https://www.what2learn.com/wp-content/uploads/2026/06/Location8_Kholby.mp4",
+      linkLabel: "Solve the puzzle",   
+      streetView: "https://www.what2learn.com/wp-content/uploads/2026/06/pipes.html",
+      questions: [
+        { text: "What is the Overland Transit Log Key?", answer: "4927" }
+      ],
+      tip: "Rotate the pipes to get the steam from the boiler to the pistons to get the ship moving."
+    },
+    {
+      id: 9,
+      name: "Allahabad Junction",
+      country: "Allahabad, India",
+      video: "https://www.what2learn.com/wp-content/uploads/2026/06/Location9_Allahabad.mp4",
+      linkLabel: "Open Navigation Map",   
+      streetView: "https://www.google.com/maps/place/%E0%A4%B6%E0%A4%BF%E0%A4%B5+%E0%A4%AE%E0%A4%82%E0%A4%A6%E0%A4%BF%E0%A4%B0/@25.4907921,81.87245,3a,75y,56.58h,77.84t/data=!3m7!1e1!3m5!1srWxkWj-ti0wR60bcVK2iQw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D12.1553984081782%26panoid%3DrWxkWj-ti0wR60bcVK2iQw%26yaw%3D56.580538854335416!7i16384!8i8192!4m6!3m5!1s0x399ab50f16ca4963:0x93dd11e41d619ea8!8m2!3d25.4911823!4d81.8723856!16s%2Fg%2F11vf4w7q82?entry=ttu&g_ep=EgoyMDI2MDUyNy4wIKXMDSoASAFQAw%3D%3D",
+      questions: [
+        { text: "Complete the name of the school: 'Shiv...'", answer: "Vidya" },
+        { text: "What is the name of the gentlemen's hairdressers?", answer: "Atfab" }
+      ],
+      tip: "The name of the school is on the wall around the plaground near your starting point - but it has faded a bit. You'll find the hairdresser at the shops near the school site."
+    },
+    {
+      id: 10,
+      name: "Howrah Docks",
+      country: "Calcutta, India",
+      video: "https://www.what2learn.com/wp-content/uploads/2026/06/Location10_Calcutta.mp4",
+      linkLabel: "Open Navigation Map",   
+      streetView: "https://www.google.com/maps/@22.0211208,88.0550033,3a,75y,323.14h,66.62t/data=!3m7!1e1!3m5!1saTsJJkGGn61D_u56-JQWlQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D23.37576230172691%26panoid%3DaTsJJkGGn61D_u56-JQWlQ%26yaw%3D323.14203175358904!7i13312!8i6656?entry=ttu&g_ep=EgoyMDI2MDUyNy4wIKXMDSoASAFQAw%3D%3D",
+      questions: [
+        { text: "What is the 3 digit number (made from the number of people on the boat, then horses pulling the carriage, then number praying near the giant golden statue.", answer: "345" }
+      ],
+      tip: "From your starting point, keep the water to your left and move ahead, keeping an eye out for colourful statues."
+    },
+    {
+      id: 11,
+      name: "At sea",
+      country: "International Waters",
+      video: "https://www.what2learn.com/wp-content/uploads/2026/06/Location11_Steamership.mp4",
+      linkLabel: "Solve the puzzle",   
+      streetView: "https://www.what2learn.com/wp-content/uploads/2026/06/fluids.html",
+      questions: [
+        { text: "what is the Logistics Dispatch Auth Key?", answer: "8135" }
+      ],
+      tip: "Tip the fluids from one bottle to another until the the same colours are all in one bottle."
+    },
+    {
+      id: 12,
+      name: "Victoria Harbour",
+      country: "Singapore",
+      video: "https://www.what2learn.com/wp-content/uploads/2026/06/Location12_Singapore.mp4",
+      linkLabel: "Open Navigation Map",   
+      streetView: "https://www.google.com/maps/@22.2878807,114.1569882,3a,75y,337.34h,77.92t/data=!3m7!1e1!3m5!1sT1oi5GjxUIY72uX84fSLhg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D12.07807095435156%26panoid%3DT1oi5GjxUIY72uX84fSLhg%26yaw%3D337.34449557792055!7i16384!8i8192?entry=ttu&g_ep=EgoyMDI2MDUyNy4wIKXMDSoASAFQAw%3D%3D",
+      questions: [
+        { text: "Where does ferry terminal 2 go to?", answer: "Park" },
+        { text: "Where does ferry terminal 4 go to?", answer: "Lamma" }
+      ],
+      tip: "From the starting point, you are in the middle of the two ferry terminals you need to visit. Go to one then double back to the other."
+    },
+
+    {
+      id: 13,
+      name: "Cabin Confusion",
+      country: "At sea.",
+      video: "https://www.what2learn.com/wp-content/uploads/2026/06/Location13_Cabins.mp4",
+      linkLabel: "Open Navigation Map",   
+      streetView: "https://www.what2learn.com/wp-content/uploads/2026/06/cabins.html",
+      questions: [
+        { text: "What is the journey password?", answer: "YOKOHAMA77" }
+      ],
+      tip: "Fogg's cabin digits add up to an even number, leaving only 101 or 103. Since Cabin 101 got the Fish & Chips and Fogg ordered Steak, Fogg must be in Cabin 103!"
+    },
+
+
+    {
+      id: 14,
+      name: "Port of Yokohama",
+      country: "Yokohama, Japan",
+      video: "https://www.what2learn.com/wp-content/uploads/2026/06/Location14_Yokohama.mp4",
+      linkLabel: "Open Navigation Map",   
+      streetView: "https://www.google.com/maps/@35.473799,139.6391726,3a,75y,116.24h,83.21t/data=!3m7!1e1!3m5!1soWr8mKfhE_m56LgNqfR45A!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D6.79391020185453%26panoid%3DoWr8mKfhE_m56LgNqfR45A%26yaw%3D116.23907742489713!7i16384!8i8192?entry=ttu&g_ep=EgoyMDI2MDUyNy4wIKXMDSoASAFQAw%3D%3D",
+      questions: [
+        { text: "What are the 6 characters (from left to right) on the warehouses? (no spaces)", answer: "D1D2D3" },
+        { text: "What is the restaurant which might be an 'out of this world' eating experience?", answer: "Neptune" },
+        { text: "What is the name of the bar for a refreshing drink after the meal?", answer: "Polestar" }
+      ],
+      tip: "Cross the rail line from the starting point and continue down the road. Keep looking to the right all the way up to the bridge."
+    },
+    {
+      id: 15,
+      name: "Luggage Chaos",
+      country: "Pacific Ocean",
+      video: "https://www.what2learn.com/wp-content/uploads/2026/06/Location15_Luggage.mp4",
+      linkLabel: "Solve the puzzle",   
+      streetView: "https://www.what2learn.com/wp-content/uploads/2026/06/luggage.html",
+      questions: [
+        { text: "What is the dispatch key?", answer: "9472" }
+      ],
+      tip: "You'll need to master using the arrow keys to rotate and move the shapes. Also, look ahead to what the next shape is.."
+    },
+    {
+      id: 16,
+      name: "Oakland Long Wharf",
+      country: "San Francisco, USA",
+      video: "video16.mp4",
+      linkLabel: "Open Navigation Map",   
+      streetView: "https://www.google.com/maps/place/Oakland/@37.7552832,-122.2524269,3a,75y,121.15h,76.48t/data=!3m7!1e1!3m5!1syPMQBtHi374ANmK57Ssm8Q!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D13.521984761575283%26panoid%3DyPMQBtHi374ANmK57Ssm8Q%26yaw%3D121.15203774490301!7i16384!8i8192!4m6!3m5!1s0x808f80c7768c4d51:0xbe039ac53001b159!8m2!3d37.7951219!4d-122.2797589!16s%2Fm%2F0j_4gqt?entry=ttu&g_ep=EgoyMDI2MDUyNy4wIKXMDSoASAFQAw%3D%3D",
+      questions: [
+        { text: "What is the name of the hardware shop?", answer: "Pagano" },
+        { text: "Where can you buy some Taiwan Fruit Tea?", answer: "Fang" },
+        { text: "Where can we clean our clothes?", answer: "Martinizing" }
+      ],
+      tip: "From the starting place, find your way into the retail park and see what shops are available."
+    },
+    {
+      id: 17,
+      name: "Central Pacific Station",
+      country: "San Francisco, USA",
+      video: "https://www.what2learn.com/wp-content/uploads/2026/06/Location17_Station.mp4",
+      linkLabel: "Solve the puzzle",   
+      streetView: "https://www.what2learn.com/wp-content/uploads/2026/06/slitherlink.html",
+      questions: [
+        { text: "What is the Signal Decrypt Key?", answer: "8351" }
+      ],
+      tip: "Remember, you can have double bridges between some islands."
+    },
+
+    {
+      id: 18,
+      name: "Medicine Bow",
+      country: "Wyoming, USA",
+      video: "video18.mp4",
+      linkLabel: "Solve the puzzle",   
+      streetView: "https://www.what2learn.com/wp-content/uploads/2026/06/bridge_challenge.html",
+      questions: [
+        { text: "What is the Signal Decrypt Key?", answer: "WILDWEST80" }
+      ],
+      tip: "The trick is to make the two slowest people cross together, and they should only cross once."
+    },
+    {
+      id: 19,
+      name: "New York City",
+      country: "New York, USA",
+      video: "video19.mp4",
+      linkLabel: "Open Navigation Map",   
+      streetView: "https://www.google.com/maps/@40.7599116,-73.9877836,3a,75y,15.98h,84.67t/data=!3m7!1e1!3m5!1s-nL55jLAJ75VR6YaBLY-2A!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D5.329879538618329%26panoid%3D-nL55jLAJ75VR6YaBLY-2A%26yaw%3D15.979327368206395!7i16384!8i8192?entry=ttu&g_ep=EgoyMDI2MDUyNy4wIKXMDSoASAFQAw%3D%3D",
+      questions: [
+        { text: "What is the name of the Batman-related gift shop?", answer: "Gotham" },
+        { text: "What is the name of the bar named after a famous English author?", answer: "Dicken" },
+        { text: "What are the four numbers relating to the local fire station?", answer: "5449" }
+      ],
+      tip: "From the starting point, keep the New York Times hotel to your left and move along the road. Look on your left for the first two answers, then to your right for the final answer."
+    }
+  ]; // end LOCATIONS
+
+  /* ════════════════════════════════════════════════════════════════
+     GAME STATE
+  ════════════════════════════════════════════════════════════════ */
+  const STATE = {
+    currentIndex: 0,       // 0-based index into LOCATIONS
+    tipUnlocked: false,    // whether tip button is active for current location
+    tipTimerSecs: 180,     // countdown seconds remaining
+    tipInterval: null,     // setInterval handle for countdown
+    introPlayed: false,    // has the one-time intro video been shown?
+  };
+
+  /* ════════════════════════════════════════════════════════════════
+     DOM REFERENCES
+  ════════════════════════════════════════════════════════════════ */
+  const dom = {
+    introScreen:      document.getElementById('intro-screen'),
+    gameScreen:       document.getElementById('game-screen'),
+    completeScreen:   document.getElementById('complete-screen'),
+
+    // Intro
+    skipBtn:          document.getElementById('skip-btn'),
+    introVideo:       document.getElementById('video-player'),
+
+    // Stage badge
+    stageNum:         document.getElementById('stage-num'),
+    stageLocation:    document.getElementById('stage-location'),
+    stageCountry:     document.getElementById('stage-country'),
+
+    // Location video
+    locationVideoWrap: document.getElementById('location-video-wrap'),
+    locationVideo:     document.getElementById('location-video'),
+    locVideoLabel:     document.getElementById('loc-video-label'),
+
+    // Task panel
+    taskPanel:        document.getElementById('task-panel'),
+    replayBtn:        document.getElementById('replay-btn'),
+    streetviewLink:   document.getElementById('streetview-link'),
+    streetviewLinkLabel: document.getElementById('streetview-link-label'),
+    questionsBlock:   document.getElementById('questions-block'),
+
+    // Tip
+    tipBtn:           document.getElementById('tip-btn'),
+    tipLabel:         document.getElementById('tip-label'),
+    tipCountdown:     document.getElementById('tip-countdown'),
+    tipBox:           document.getElementById('tip-box'),
+
+    submitBtn:        document.getElementById('submit-btn'),
+    feedbackToast:    document.getElementById('feedback-toast'),
+
+    // Success overlay
+    successOverlay:   document.getElementById('success-overlay'),
+    successSubtitle:  document.getElementById('success-subtitle'),
+    successNextBtn:   document.getElementById('success-next-btn'),
+
+    progressTrack:    document.getElementById('progress-track'),
+  };
+
+  /* ════════════════════════════════════════════════════════════════
+     PROGRESS PIPS — build 16 pips once at init
+  ════════════════════════════════════════════════════════════════ */
+  function buildProgressPips() {
+    dom.progressTrack.innerHTML = '';
+    LOCATIONS.forEach((_, i) => {
+      const pip = document.createElement('div');
+      pip.className = 'progress-pip';
+      pip.id = `pip-${i}`;
+      pip.title = LOCATIONS[i].name;
+      dom.progressTrack.appendChild(pip);
+    });
+  }
+
+  function updateProgressPips() {
+    LOCATIONS.forEach((_, i) => {
+      const pip = document.getElementById(`pip-${i}`);
+      if (!pip) return;
+      pip.className = 'progress-pip';
+      if (i < STATE.currentIndex)       pip.classList.add('done');
+      else if (i === STATE.currentIndex) pip.classList.add('current');
+    });
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     ANSWER VALIDATION
+     Case-insensitive substring match:
+     correct if student input CONTAINS the answer string (or vice versa)
+  ════════════════════════════════════════════════════════════════ */
+  function isCorrect(studentInput, correctAnswer) {
+    const inp = studentInput.trim().toLowerCase();
+    const ans = correctAnswer.trim().toLowerCase();
+    if (inp.length === 0) return false;
+    return inp.includes(ans) || ans.includes(inp);
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     TIP TIMER
+  ════════════════════════════════════════════════════════════════ */
+  function startTipTimer() {
+    // Clear any running timer
+    if (STATE.tipInterval) clearInterval(STATE.tipInterval);
+
+    STATE.tipUnlocked = false;
+    STATE.tipTimerSecs = 180;
+    dom.tipBtn.disabled = true;
+    dom.tipBtn.classList.remove('unlocked');
+    dom.tipBox.classList.remove('visible');
+    dom.tipBox.style.display = 'none';
+
+    updateTipDisplay();
+
+    STATE.tipInterval = setInterval(() => {
+      STATE.tipTimerSecs--;
+      updateTipDisplay();
+
+      if (STATE.tipTimerSecs <= 0) {
+        clearInterval(STATE.tipInterval);
+        STATE.tipInterval = null;
+        STATE.tipUnlocked = true;
+        dom.tipBtn.disabled = false;
+        dom.tipBtn.classList.add('unlocked');
+        dom.tipLabel.textContent = 'Get a Tip';
+        dom.tipCountdown.textContent = '';
+      }
+    }, 1000);
+  }
+
+  function updateTipDisplay() {
+    if (!STATE.tipUnlocked) {
+      const mins = Math.floor(STATE.tipTimerSecs / 60).toString().padStart(2, '0');
+      const secs = (STATE.tipTimerSecs % 60).toString().padStart(2, '0');
+      dom.tipLabel.textContent = 'Tips locked for';
+      dom.tipCountdown.textContent = `${mins}:${secs}`;
+    }
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     SHOW INTRO (Location 1 only, once)
+  ════════════════════════════════════════════════════════════════ */
+  function showIntro() {
+    dom.introScreen.classList.remove('hidden');
+    dom.gameScreen.classList.add('hidden');
+    dom.completeScreen.classList.remove('show');
+
+    dom.introVideo.src = INTRO_VIDEO;
+    dom.introVideo.load();
+    dom.introVideo.play().catch(() => { /* autoplay blocked — user must press play */ });
+
+    // When intro ends → jump to location 1 task video
+    dom.introVideo.onended = () => transitionToLocationVideo(0);
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     TRANSITION: show location video for given index
+  ════════════════════════════════════════════════════════════════ */
+  function transitionToLocationVideo(index) {
+    STATE.currentIndex = index;
+    const loc = LOCATIONS[index];
+
+    // Hide intro, show game screen
+    dom.introScreen.classList.add('hidden');
+    dom.gameScreen.classList.remove('hidden');
+    dom.completeScreen.classList.remove('show');
+
+    // Update badge
+    dom.stageNum.textContent = loc.id;
+    dom.stageLocation.textContent = loc.name;
+    dom.stageCountry.textContent = loc.country;
+
+    // Update pips
+    updateProgressPips();
+
+    // Show video, hide task panel
+    dom.locationVideoWrap.classList.remove('hidden');
+    dom.taskPanel.classList.add('hidden');
+    dom.locVideoLabel.textContent = `Location ${loc.id} of 16 — ${loc.name}`;
+
+    // Load & play location video
+    dom.locationVideo.src = loc.video;
+    dom.locationVideo.load();
+    dom.locationVideo.play().catch(() => { /* blocked */ });
+
+    // When video ends → show tasks
+    dom.locationVideo.onended = () => showTaskPanel(index);
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     SHOW TASK PANEL for given index
+  ════════════════════════════════════════════════════════════════ */
+  function showTaskPanel(index) {
+    const loc = LOCATIONS[index];
+
+    // Hide video, show tasks
+    dom.locationVideoWrap.classList.add('hidden');
+    dom.taskPanel.classList.remove('hidden');
+
+    // Populate street view link and its button label
+    dom.streetviewLink.href = loc.streetView;
+    // Use the per-location linkLabel, falling back to a sensible default
+    dom.streetviewLinkLabel.textContent = loc.linkLabel || 'Open Navigation Map';
+
+    // Build question inputs
+    dom.questionsBlock.innerHTML = '';
+    loc.questions.forEach((q, i) => {
+      const item = document.createElement('div');
+      item.className = 'question-item';
+      item.innerHTML = `
+        <label>
+          <span class="q-num">Question ${i + 1}</span>
+          ${q.text}
+        </label>
+        <div class="input-wrapper">
+          <input
+            class="answer-input"
+            id="answer-${i}"
+            type="text"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            placeholder="Type your answer here…"
+          />
+          <span class="correct-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </span>
+        </div>
+      `;
+      dom.questionsBlock.appendChild(item);
+    });
+
+    // Reset tip
+    startTipTimer();
+
+    // Populate tip text
+    dom.tipBox.textContent = loc.tip;
+    dom.tipBox.style.display = 'none';
+    dom.tipBox.classList.remove('visible');
+
+    // Scroll to top of page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     SUBMIT HANDLER
+  ════════════════════════════════════════════════════════════════ */
+  function handleSubmit() {
+    const loc = LOCATIONS[STATE.currentIndex];
+    let allCorrect = true;
+
+    loc.questions.forEach((q, i) => {
+      const input = document.getElementById(`answer-${i}`);
+      if (!input) return;
+      const ok = isCorrect(input.value, q.answer);
+      input.classList.remove('correct', 'incorrect');
+      input.classList.add(ok ? 'correct' : 'incorrect');
+      if (!ok) allCorrect = false;
+    });
+
+    if (allCorrect) {
+      showSuccess();
+    } else {
+      showToast('Some answers need another look — check the highlighted fields.', 'error');
+    }
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     SUCCESS FLOW
+  ════════════════════════════════════════════════════════════════ */
+  function showSuccess() {
+    // Stop tip timer
+    if (STATE.tipInterval) { clearInterval(STATE.tipInterval); STATE.tipInterval = null; }
+
+    const loc = LOCATIONS[STATE.currentIndex];
+    dom.successSubtitle.textContent = `You've solved all the clues at ${loc.name}!`;
+    dom.successOverlay.classList.add('show');
+
+    spawnConfetti();
+  }
+
+  function advanceLocation() {
+    dom.successOverlay.classList.remove('show');
+    clearConfetti();
+
+    const nextIndex = STATE.currentIndex + 1;
+
+    if (nextIndex >= LOCATIONS.length) {
+      // Game complete!
+      dom.gameScreen.classList.add('hidden');
+      dom.introScreen.classList.add('hidden');
+      dom.completeScreen.classList.add('show');
+      updateProgressPips();
+      return;
+    }
+
+    transitionToLocationVideo(nextIndex);
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     CONFETTI
+  ════════════════════════════════════════════════════════════════ */
+  const confettiColors = ['#D4A017','#F0C040','#B87333','#CD8B4A','#52C48A','#E8D9B5'];
+  let confettiPieces = [];
+
+  function spawnConfetti() {
+    for (let i = 0; i < 60; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.cssText = `
+        left: ${Math.random() * 100}vw;
+        top: -10px;
+        background: ${confettiColors[Math.floor(Math.random() * confettiColors.length)]};
+        transform: rotate(${Math.random() * 360}deg);
+        animation-delay: ${Math.random() * 1.2}s;
+        animation-duration: ${1.8 + Math.random() * 1.4}s;
+        width: ${6 + Math.random() * 6}px;
+        height: ${6 + Math.random() * 6}px;
+        border-radius: ${Math.random() > 0.5 ? '50%' : '1px'};
+      `;
+      document.body.appendChild(el);
+      confettiPieces.push(el);
+    }
+  }
+
+  function clearConfetti() {
+    confettiPieces.forEach(el => el.remove());
+    confettiPieces = [];
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     TOAST NOTIFICATION
+  ════════════════════════════════════════════════════════════════ */
+  let toastTimeout = null;
+
+  function showToast(msg, type = 'info') {
+    const t = dom.feedbackToast;
+    t.textContent = msg;
+    t.className = `show ${type}`;
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => { t.className = ''; }, 3200);
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     EVENT LISTENERS
+  ════════════════════════════════════════════════════════════════ */
+
+  // Skip intro button
+  dom.skipBtn.addEventListener('click', () => {
+    dom.introVideo.pause();
+    transitionToLocationVideo(0);
+  });
+
+  // Replay button — hide tasks, show video again
+  dom.replayBtn.addEventListener('click', () => {
+    dom.taskPanel.classList.add('hidden');
+    dom.locationVideoWrap.classList.remove('hidden');
+    dom.locationVideo.currentTime = 0;
+    dom.locationVideo.play().catch(() => {});
+    // Re-attach ended handler (it may have been overwritten)
+    dom.locationVideo.onended = () => showTaskPanel(STATE.currentIndex);
+  });
+
+  // Tip button
+  dom.tipBtn.addEventListener('click', () => {
+    if (!STATE.tipUnlocked) return;
+    dom.tipBox.style.display = 'block';
+    dom.tipBox.classList.add('visible');
+  });
+
+  // Submit button
+  dom.submitBtn.addEventListener('click', handleSubmit);
+
+  // Allow Enter key inside inputs to submit
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && document.activeElement.classList.contains('answer-input')) {
+      handleSubmit();
+    }
+  });
+
+  // Success overlay — continue button
+  dom.successNextBtn.addEventListener('click', advanceLocation);
+
+  // Close success overlay if clicking backdrop
+  dom.successOverlay.addEventListener('click', (e) => {
+    if (e.target === dom.successOverlay) advanceLocation();
+  });
+
+  /* ════════════════════════════════════════════════════════════════
+     INIT
+  ════════════════════════════════════════════════════════════════ */
+  function init() {
+    buildProgressPips();
+    updateProgressPips();
+    showIntro();
+  }
+
+  init();
+
+  </script>
+</body>
+</html>
