@@ -147,6 +147,36 @@
       font-style: italic;
     }
 
+    /* ─── Extensions Button (header) ──────────────────────────────────── */
+    #extensions-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(184,134,11,0.1);
+      border: 1px solid var(--brass);
+      color: var(--brass-light);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.4rem 0.75rem;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    #extensions-btn:hover {
+      background: rgba(184,134,11,0.22);
+      box-shadow: 0 0 12px rgba(184,134,11,0.3);
+      color: var(--brass-shine);
+    }
+    @media (max-width: 480px) {
+      #extensions-btn span { display: none; }
+      #extensions-btn { padding: 0.45rem; }
+    }
+
     /* ─── Progress Track ─────────────────────────────────────────────── */
     #progress-track {
       display: flex;
@@ -162,13 +192,28 @@
       border: 1px solid rgba(184,134,11,0.3);
       transition: all 0.4s ease;
       flex-shrink: 0;
+      cursor: pointer;
+      padding: 0;
+      display: block;
+      appearance: none;
+      -webkit-appearance: none;
+      outline: none;
     }
+    .progress-pip:focus-visible {
+      box-shadow: 0 0 0 2px var(--brass-shine);
+    }
+    .progress-pip:hover {
+      transform: scale(1.4);
+      border-color: var(--brass-shine);
+    }
+    /* Completed pips glow gold; current location gets a soft pulse ring
+       (in addition to, not instead of, its completed/incomplete colour) */
     .progress-pip.done    { background: var(--brass); border-color: var(--brass-shine); box-shadow: 0 0 6px rgba(212,160,23,0.6); }
-    .progress-pip.current { background: var(--brass-light); border-color: var(--brass-shine); box-shadow: 0 0 10px rgba(240,192,64,0.8); animation: pulse-pip 1.5s infinite; }
+    .progress-pip.current { box-shadow: 0 0 0 2px rgba(240,192,64,0.5), 0 0 10px rgba(240,192,64,0.6); animation: pulse-pip 1.5s infinite; }
 
     @keyframes pulse-pip {
-      0%, 100% { box-shadow: 0 0 6px rgba(240,192,64,0.8); }
-      50%       { box-shadow: 0 0 14px rgba(240,192,64,1); }
+      0%, 100% { box-shadow: 0 0 0 2px rgba(240,192,64,0.4), 0 0 6px rgba(240,192,64,0.5); }
+      50%       { box-shadow: 0 0 0 3px rgba(240,192,64,0.7), 0 0 14px rgba(240,192,64,0.9); }
     }
 
     /* ─── Main Content Area ──────────────────────────────────────────── */
@@ -638,6 +683,148 @@
       line-height: 1.6;
     }
 
+    /* ─── Extensions Modal ───────────────────────────────────────────── */
+    #extensions-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(10,11,14,0.88);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      z-index: 800;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+    #extensions-overlay.show { display: flex; }
+
+    #extensions-modal {
+      width: 100%;
+      max-width: 720px;
+      max-height: 88vh;
+      overflow-y: auto;
+      background: linear-gradient(160deg, #22180E 0%, #1A1208 100%);
+      border: 2px solid var(--brass);
+      border-radius: 8px;
+      box-shadow: 0 0 60px rgba(184,134,11,0.25), 0 20px 60px rgba(0,0,0,0.6);
+      padding: 1.75rem;
+      position: relative;
+      animation: pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+
+    #extensions-modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    #extensions-modal h2 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.2rem, 4vw, 1.6rem);
+      color: var(--brass-shine);
+      text-shadow: 0 2px 14px rgba(184,134,11,0.3);
+      letter-spacing: 0.06em;
+    }
+
+    #extensions-modal .ext-subtitle {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 0.9rem;
+      color: var(--parch-dark);
+      opacity: 0.7;
+      margin-top: 0.3rem;
+    }
+
+    #extensions-close-btn {
+      background: rgba(245,237,214,0.06);
+      border: 1px solid rgba(184,134,11,0.4);
+      color: var(--parch-dark);
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+    #extensions-close-btn:hover { background: var(--brass); color: var(--slate); border-color: var(--brass-shine); }
+
+    .ext-card {
+      background: rgba(245,237,214,0.04);
+      border: 1px solid rgba(184,134,11,0.3);
+      border-radius: 6px;
+      padding: 1.1rem 1.25rem;
+      margin-top: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .ext-card:hover { border-color: var(--brass-light); background: rgba(184,134,11,0.07); }
+    .ext-card.expanded { border-color: var(--brass-shine); background: rgba(184,134,11,0.09); box-shadow: 0 0 16px rgba(184,134,11,0.15); }
+
+    .ext-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .ext-card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--parchment);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .ext-card-chevron {
+      color: var(--brass);
+      flex-shrink: 0;
+      transition: transform 0.25s ease;
+    }
+    .ext-card.expanded .ext-card-chevron { transform: rotate(180deg); }
+
+    .ext-card-summary {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      color: var(--parch-dark);
+      opacity: 0.7;
+      margin-top: 0.4rem;
+      line-height: 1.5;
+    }
+
+    .ext-card-detail {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease;
+    }
+    .ext-card.expanded .ext-card-detail {
+      max-height: 600px;
+    }
+
+    .ext-card-detail-inner {
+      padding-top: 0.9rem;
+      margin-top: 0.9rem;
+      border-top: 1px solid rgba(184,134,11,0.25);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      color: var(--parch-dark);
+      line-height: 1.65;
+    }
+    .ext-card-detail-inner strong { color: var(--brass-light); }
+    .ext-card-detail-inner ul { margin: 0.5rem 0 0; padding-left: 1.1rem; }
+    .ext-card-detail-inner li { margin-bottom: 0.35rem; }
+
+    /* ─── Complete Screen button row ─────────────────────────────────── */
+    #complete-btn-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
     /* ─── Intro Screen ───────────────────────────────────────────────── */
     #intro-screen {
       width: 100%;
@@ -721,8 +908,15 @@
         <div class="subtitle">Jules Verne's</div>
         <h1>Around the World in 80 Days</h1>
       </div>
-      <!-- 16 progress pips -->
-      <div id="progress-track" aria-label="Progress"></div>
+      <div style="display:flex;align-items:center;gap:0.9rem;">
+        <!-- Extensions button -->
+        <button id="extensions-btn" title="Extension Activities">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L2 7 L12 12 L22 7 Z"/><path d="M2 17 L12 22 L22 17"/><path d="M2 12 L12 17 L22 12"/></svg>
+          <span>Extensions</span>
+        </button>
+        <!-- 19 progress pips -->
+        <div id="progress-track" aria-label="Progress"></div>
+      </div>
     </header>
 
     <!-- MAIN -->
@@ -815,10 +1009,15 @@
       <div id="complete-screen">
         <div class="complete-icon">🌍</div>
         <h2>Journey Complete!</h2>
-        <p>Phileas Fogg has circumnavigated the globe in record time — and so have you. You've cracked every cipher, decoded every clue, and conquered all 16 checkpoints. Extraordinary!</p>
-        <button onclick="location.reload()" style="padding:0.75rem 2.5rem;background:linear-gradient(135deg,var(--brass-light),var(--brass));color:var(--slate);font-family:'Cinzel',serif;font-size:0.9rem;letter-spacing:0.12em;border:none;border-radius:3px;cursor:pointer;box-shadow:0 4px 20px rgba(184,134,11,0.4);">
-          Play Again
-        </button>
+        <p>Phileas Fogg has circumnavigated the globe in record time — and so have you. You've cracked every cipher, decoded every clue, and conquered all 19 checkpoints. Extraordinary!</p>
+        <div id="complete-btn-row">
+          <button onclick="location.reload()" style="padding:0.75rem 2rem;background:linear-gradient(135deg,var(--brass-light),var(--brass));color:var(--slate);font-family:'Cinzel',serif;font-size:0.85rem;letter-spacing:0.1em;border:none;border-radius:3px;cursor:pointer;box-shadow:0 4px 20px rgba(184,134,11,0.4);">
+            Play Again
+          </button>
+          <button id="complete-extensions-btn" style="padding:0.75rem 2rem;background:linear-gradient(135deg,var(--leather-light,#8B4E38),var(--leather));color:var(--brass-shine);font-family:'Cinzel',serif;font-size:0.85rem;letter-spacing:0.1em;border:1px solid var(--brass);border-radius:3px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+            On to the Extension Tasks ✒️
+          </button>
+        </div>
       </div>
 
     </main><!-- /main -->
@@ -838,6 +1037,83 @@
 
   <!-- ── FEEDBACK TOAST ────────────────────────────────────────────── -->
   <div id="feedback-toast" role="status" aria-live="polite"></div>
+
+  <!-- ── EXTENSIONS MODAL ──────────────────────────────────────────── -->
+  <div id="extensions-overlay" role="dialog" aria-modal="true" aria-label="Extension activities">
+    <div id="extensions-modal">
+      <div id="extensions-modal-header">
+        <div>
+          <h2>Extension Activities</h2>
+          <div class="ext-subtitle">Finished early, traveller? Choose a challenge to deepen your journey.</div>
+        </div>
+        <button id="extensions-close-btn" aria-label="Close">✕</button>
+      </div>
+
+      <!-- Card 1: Logbook Entry -->
+      <div class="ext-card" data-ext-card="1">
+        <div class="ext-card-header">
+          <div class="ext-card-title">✒️ Logbook Entry</div>
+          <svg class="ext-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ext-card-summary">Creative writing — write a 200-word diary entry from Passepartout's perspective about an untold disaster or narrow escape.</div>
+        <div class="ext-card-detail">
+          <div class="ext-card-detail-inner">
+            Choose your favourite city from the journey. Write a <strong>200-word diary entry</strong> from Passepartout's perspective describing an untold disaster, wild crowd, or narrow escape that almost caused them to miss their connection.
+            <ul>
+              <li>Pick one location you visited during the game.</li>
+              <li>Write in the first person, as Passepartout.</li>
+              <li>Include sensory detail — sights, sounds, smells of the city.</li>
+              <li>Build tension towards the near-miss moment.</li>
+              <li>Aim for approximately 200 words.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Steampunk Invention -->
+      <div class="ext-card" data-ext-card="2">
+        <div class="ext-card-header">
+          <div class="ext-card-title">🛠️ Steampunk Invention</div>
+          <svg class="ext-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ext-card-summary">Design &amp; mechanics — invent a 19th-century gadget to solve one of the trip's environmental roadblocks.</div>
+        <div class="ext-card-detail">
+          <div class="ext-card-detail-inner">
+            Fogg desperately needs an engineering advantage. Invent a <strong>19th-century mechanical gadget</strong> (e.g. steam-propelled ice-clearing boots or an atmospheric smoke-dispersal lens) that could solve one of the environmental roadblocks from the trip.
+            <ul>
+              <li>Identify a real obstacle Fogg faced on the journey.</li>
+              <li>Sketch your invention — label the key moving parts.</li>
+              <li>Give it a Victorian-style name.</li>
+              <li>Write a brief pitch explaining how its gears and pistons function.</li>
+              <li>Explain exactly how it solves the chosen problem.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Pole to Pole -->
+      <div class="ext-card" data-ext-card="3">
+        <div class="ext-card-header">
+          <div class="ext-card-title">🗺️ Pole to Pole</div>
+          <svg class="ext-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ext-card-summary">The Americas route — map a 10-stop North-to-South journey and design your own Street View puzzle clues.</div>
+        <div class="ext-card-detail">
+          <div class="ext-card-detail-inner">
+            Imagine Phileas Fogg changes his strategy and decides to travel straight <strong>North to South across the Americas</strong> instead. Open a Google Doc and map out a detailed <strong>10-stop route</strong> starting from the northernmost tip of Canada down to the southern tip of Argentina.
+            <ul>
+              <li>Plot 10 stops, spread sensibly from northern Canada to southern Argentina.</li>
+              <li>For each stop, open Google Street View and find a unique landscape or landmark.</li>
+              <li>Capture a screenshot of that location.</li>
+              <li>Write an intricate puzzle question targeting a hidden sign, name, or detail.</li>
+              <li>Compile everything into a single, well-organised Google Doc for future travellers to solve.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
   <!-- ════════════════════════════════════════════════════════════════
        JAVASCRIPT — GAME ENGINE
@@ -1164,6 +1440,7 @@
     tipTimerSecs: 180,     // countdown seconds remaining
     tipInterval: null,     // setInterval handle for countdown
     introPlayed: false,    // has the one-time intro video been shown?
+    completed: new Set(),  // 0-based indices of locations the student has fully solved
   };
 
   /* ════════════════════════════════════════════════════════════════
@@ -1210,30 +1487,62 @@
     successNextBtn:   document.getElementById('success-next-btn'),
 
     progressTrack:    document.getElementById('progress-track'),
+
+    // Extensions
+    extensionsBtn:        document.getElementById('extensions-btn'),
+    extensionsOverlay:    document.getElementById('extensions-overlay'),
+    extensionsCloseBtn:   document.getElementById('extensions-close-btn'),
+    completeExtensionsBtn: document.getElementById('complete-extensions-btn'),
   };
 
   /* ════════════════════════════════════════════════════════════════
-     PROGRESS PIPS — build 16 pips once at init
+     PROGRESS PIPS — build pips once at init, clickable to jump
   ════════════════════════════════════════════════════════════════ */
   function buildProgressPips() {
     dom.progressTrack.innerHTML = '';
-    LOCATIONS.forEach((_, i) => {
-      const pip = document.createElement('div');
+    LOCATIONS.forEach((loc, i) => {
+      const pip = document.createElement('button');
+      pip.type = 'button';
       pip.className = 'progress-pip';
       pip.id = `pip-${i}`;
-      pip.title = LOCATIONS[i].name;
+      pip.title = loc.name;
+      pip.setAttribute('aria-label', `Jump to ${loc.name}`);
+      pip.addEventListener('click', () => jumpToLocation(i));
       dom.progressTrack.appendChild(pip);
     });
   }
 
+  // Pips reflect COMPLETION state (gold = solved), not "visited" state.
+  // The current location additionally gets a soft pulsing ring.
   function updateProgressPips() {
     LOCATIONS.forEach((_, i) => {
       const pip = document.getElementById(`pip-${i}`);
       if (!pip) return;
       pip.className = 'progress-pip';
-      if (i < STATE.currentIndex)       pip.classList.add('done');
-      else if (i === STATE.currentIndex) pip.classList.add('current');
+      if (STATE.completed.has(i))      pip.classList.add('done');
+      if (i === STATE.currentIndex)    pip.classList.add('current');
     });
+  }
+
+  // Find the first location (in order) that hasn't been completed yet.
+  // Returns -1 if every location is complete.
+  function firstIncompleteIndex() {
+    for (let i = 0; i < LOCATIONS.length; i++) {
+      if (!STATE.completed.has(i)) return i;
+    }
+    return -1;
+  }
+
+  // Clicking a pip jumps straight to that location's video, then tasks —
+  // works whether the location is already completed (for review/redo)
+  // or still outstanding.
+  function jumpToLocation(index) {
+    // Don't allow jumping while the one-time intro is still showing
+    if (!dom.introScreen.classList.contains('hidden')) return;
+    dom.successOverlay.classList.remove('show');
+    clearConfetti();
+    dom.completeScreen.classList.remove('show');
+    transitionToLocationVideo(index);
   }
 
   /* ════════════════════════════════════════════════════════════════
@@ -1427,6 +1736,10 @@
     // Stop tip timer
     if (STATE.tipInterval) { clearInterval(STATE.tipInterval); STATE.tipInterval = null; }
 
+    // Record this location as completed — drives pip colour + final-checkpoint logic
+    STATE.completed.add(STATE.currentIndex);
+    updateProgressPips();
+
     const loc = LOCATIONS[STATE.currentIndex];
     dom.successSubtitle.textContent = `You've solved all the clues at ${loc.name}!`;
     dom.successOverlay.classList.add('show');
@@ -1438,10 +1751,14 @@
     dom.successOverlay.classList.remove('show');
     clearConfetti();
 
-    const nextIndex = STATE.currentIndex + 1;
+    // The final checkpoint (New York) only leads to the Complete screen
+    // once EVERY location has been solved. If the student jumped ahead
+    // via the pips and skipped earlier missions, send them back to the
+    // first one they haven't finished yet.
+    const incompleteIndex = firstIncompleteIndex();
 
-    if (nextIndex >= LOCATIONS.length) {
-      // Game complete!
+    if (incompleteIndex === -1) {
+      // Every location solved — game complete!
       dom.gameScreen.classList.add('hidden');
       dom.introScreen.classList.add('hidden');
       dom.completeScreen.classList.add('show');
@@ -1449,7 +1766,15 @@
       return;
     }
 
-    transitionToLocationVideo(nextIndex);
+    // If we just finished the last location in sequence, but something
+    // earlier is still incomplete, jump back to that earlier mission.
+    // Otherwise, simply move on to the next location in order.
+    const nextIndex = STATE.currentIndex + 1;
+    if (nextIndex >= LOCATIONS.length || STATE.completed.has(nextIndex)) {
+      transitionToLocationVideo(incompleteIndex);
+    } else {
+      transitionToLocationVideo(nextIndex);
+    }
   }
 
   /* ════════════════════════════════════════════════════════════════
@@ -1539,6 +1864,37 @@
   // Close success overlay if clicking backdrop
   dom.successOverlay.addEventListener('click', (e) => {
     if (e.target === dom.successOverlay) advanceLocation();
+  });
+
+  /* ── Extensions modal ──────────────────────────────────────────── */
+  function openExtensionsModal() {
+    dom.extensionsOverlay.classList.add('show');
+  }
+  function closeExtensionsModal() {
+    dom.extensionsOverlay.classList.remove('show');
+  }
+
+  dom.extensionsBtn.addEventListener('click', openExtensionsModal);
+  dom.extensionsCloseBtn.addEventListener('click', closeExtensionsModal);
+  dom.completeExtensionsBtn.addEventListener('click', openExtensionsModal);
+
+  // Close on backdrop click
+  dom.extensionsOverlay.addEventListener('click', (e) => {
+    if (e.target === dom.extensionsOverlay) closeExtensionsModal();
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && dom.extensionsOverlay.classList.contains('show')) {
+      closeExtensionsModal();
+    }
+  });
+
+  // Expand/collapse each extension card independently
+  document.querySelectorAll('.ext-card').forEach(card => {
+    card.querySelector('.ext-card-header').addEventListener('click', () => {
+      card.classList.toggle('expanded');
+    });
   });
 
   /* ════════════════════════════════════════════════════════════════
