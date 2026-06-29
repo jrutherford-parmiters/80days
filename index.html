@@ -262,7 +262,7 @@
     }
 
     /* ─── Video Container ────────────────────────────────────────────── */
-    #video-container {
+    #video-container, .video-container-shared {
       width: 100%;
       background: #000;
       border-radius: 4px;
@@ -272,7 +272,7 @@
       box-shadow: 0 0 0 4px rgba(184,134,11,0.15), 0 8px 40px rgba(0,0,0,0.7);
     }
 
-    #video-container::before {
+    #video-container::before, .video-container-shared::before {
       /* Decorative film-reel corner marks */
       content: '';
       position: absolute; inset: 6px;
@@ -282,14 +282,14 @@
       border-radius: 2px;
     }
 
-    #video-player {
+    #video-player, #howto-video {
       width: 100%;
       aspect-ratio: 16/9;
       display: block;
       background: #000;
     }
 
-    #video-label {
+    #video-label, .video-label-shared {
       position: absolute;
       bottom: 0; left: 0; right: 0;
       padding: 0.5rem 1rem;
@@ -302,7 +302,7 @@
       pointer-events: none;
     }
 
-    #skip-btn {
+    #skip-btn, .skip-btn-shared {
       position: absolute;
       top: 12px; right: 12px;
       z-index: 20;
@@ -317,7 +317,7 @@
       border-radius: 2px;
       transition: all 0.2s ease;
     }
-    #skip-btn:hover { background: var(--brass); color: var(--slate); }
+    #skip-btn:hover, .skip-btn-shared:hover { background: var(--brass); color: var(--slate); }
 
     /* ─── Task Panel (the "trunk") ───────────────────────────────────── */
     #task-panel {
@@ -826,7 +826,7 @@
       justify-content: center;
     }
     /* ─── Intro Screen ───────────────────────────────────────────────── */
-    #intro-screen {
+    #intro-screen, #howto-screen {
       width: 100%;
       display: flex;
       flex-direction: column;
@@ -834,11 +834,11 @@
       gap: 1rem;
     }
 
-    #intro-title {
+    #intro-title, .intro-title-block {
       text-align: center;
     }
 
-    #intro-title .eyebrow {
+    #intro-title .eyebrow, .intro-title-block .eyebrow {
       font-family: 'DM Sans', sans-serif;
       font-size: 0.7rem;
       letter-spacing: 0.35em;
@@ -847,7 +847,7 @@
       opacity: 0.7;
     }
 
-    #intro-title h2 {
+    #intro-title h2, .intro-title-block h2 {
       font-family: 'Cinzel', serif;
       font-size: clamp(1.4rem, 5vw, 2.5rem);
       color: var(--brass-shine);
@@ -857,7 +857,7 @@
       margin-top: 0.3rem;
     }
 
-    #intro-title p {
+    #intro-title p, .intro-title-block p {
       font-family: 'Playfair Display', serif;
       font-style: italic;
       font-size: 0.95rem;
@@ -922,21 +922,37 @@
     <!-- MAIN -->
     <main id="main">
 
+      <!-- ── HOW TO GET STARTED SCREEN (teacher briefing, shown once) ─── -->
+      <div id="howto-screen" class="hidden">
+        <div id="howto-title" class="intro-title-block">
+          <div class="eyebrow">Before You Begin</div>
+          <h2>How to Get Started</h2>
+          <p>A quick briefing for teachers running this activity for the first time.</p>
+        </div>
+
+        <div id="video-container-howto" class="video-container-shared" style="width:100%">
+          <video id="howto-video" controls playsinline>
+            Your browser does not support HTML5 video.
+          </video>
+          <div class="video-label-shared">Facilitator Briefing — How This Activity Works</div>
+        </div>
+      </div>
+
       <!-- ── INTRO SCREEN (shown for Location 1 video only) ─────── -->
       <div id="intro-screen" class="hidden">
-        <div id="intro-title">
+        <div id="intro-title" class="intro-title-block">
           <div class="eyebrow">Educational Escape Room</div>
           <h2>Around the World<br/>in 80 Days</h2>
           <p>"The world is a book, and those who do not travel read only one page."</p>
         </div>
 
         <!-- Video (intro) -->
-        <div id="video-container" style="width:100%">
+        <div id="video-container" class="video-container-shared" style="width:100%">
           <video id="video-player" controls playsinline>
             Your browser does not support HTML5 video.
           </video>
-          <div id="video-label">Introductory Narrative — London, 1870</div>
-          <button id="skip-btn">Skip Intro ›</button>
+          <div class="video-label-shared">Introductory Narrative — London, 1870</div>
+          <button id="skip-btn" class="skip-btn-shared">Skip Intro ›</button>
         </div>
       </div>
 
@@ -1148,6 +1164,11 @@
    * The location videos are defined per-entry below.
    * ──────────────────────────────────────────────────────────── */
   const INTRO_VIDEO = "https://www.what2learn.com/wp-content/uploads/2026/05/Final-Intro-Video-Compressed.mp4";
+
+  // Teacher/host briefing video — plays once, before the student-facing
+  // intro, so any teacher running this for the first time sees how the
+  // activity works. Saved in the same root folder as this index page.
+  const TEACHER_INTRO_VIDEO = "80daysintro.mp4";
 
   const LOCATIONS = [
 
@@ -1447,9 +1468,13 @@
      DOM REFERENCES
   ════════════════════════════════════════════════════════════════ */
   const dom = {
+    howtoScreen:      document.getElementById('howto-screen'),
     introScreen:      document.getElementById('intro-screen'),
     gameScreen:       document.getElementById('game-screen'),
     completeScreen:   document.getElementById('complete-screen'),
+
+    // How to Get Started (teacher briefing — shown once, before student intro)
+    howtoVideo:       document.getElementById('howto-video'),
 
     // Intro
     skipBtn:          document.getElementById('skip-btn'),
@@ -1537,7 +1562,8 @@
   // works whether the location is already completed (for review/redo)
   // or still outstanding.
   function jumpToLocation(index) {
-    // Don't allow jumping while the one-time intro is still showing
+    // Don't allow jumping while the one-time briefing or student intro is still showing
+    if (!dom.howtoScreen.classList.contains('hidden')) return;
     if (!dom.introScreen.classList.contains('hidden')) return;
     dom.successOverlay.classList.remove('show');
     clearConfetti();
@@ -1599,9 +1625,30 @@
   }
 
   /* ════════════════════════════════════════════════════════════════
+     SHOW "HOW TO GET STARTED" BRIEFING (teacher-facing, shown once,
+     before the student intro). Plays 80daysintro.mp4 from the same
+     folder as this page. Skippable at any time.
+  ════════════════════════════════════════════════════════════════ */
+  function showHowToScreen() {
+    dom.howtoScreen.classList.remove('hidden');
+    dom.introScreen.classList.add('hidden');
+    dom.gameScreen.classList.add('hidden');
+    dom.completeScreen.classList.remove('show');
+
+    dom.howtoVideo.src = TEACHER_INTRO_VIDEO;
+    dom.howtoVideo.load();
+    dom.howtoVideo.play().catch(() => { /* autoplay blocked — user must press play */ });
+
+    // When the briefing ends → move on to the student-facing intro
+    dom.howtoVideo.onended = () => showIntro();
+  }
+
+  /* ════════════════════════════════════════════════════════════════
      SHOW INTRO (Location 1 only, once)
   ════════════════════════════════════════════════════════════════ */
   function showIntro() {
+    dom.howtoVideo.pause();
+    dom.howtoScreen.classList.add('hidden');
     dom.introScreen.classList.remove('hidden');
     dom.gameScreen.classList.add('hidden');
     dom.completeScreen.classList.remove('show');
@@ -1903,7 +1950,7 @@
   function init() {
     buildProgressPips();
     updateProgressPips();
-    showIntro();
+    showHowToScreen();
   }
 
   init();
